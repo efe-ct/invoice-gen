@@ -14,9 +14,14 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('addItem').addEventListener('click', addItem);
     document.getElementById('generateInvoice').addEventListener('click', generateInvoice);
     document.getElementById('downloadPDF').addEventListener('click', downloadPDF);
+    document.getElementById('subCompanyNameInput').addEventListener('change', updateCompanyNames);
+    document.getElementById('parentCompanyNameInput').addEventListener('input', updateCompanyNames);
     
     // Initial generation
     generateInvoice();
+    
+    // Initialize company names
+    updateCompanyNames();
 });
 
 function addItem() {
@@ -37,6 +42,35 @@ function addItem() {
     // Add event listeners for real-time calculation
     itemDiv.querySelectorAll('input').forEach(input => {
         input.addEventListener('input', calculateTotals);
+    });
+}
+
+function updateCompanyNames() {
+    const subCompanyNameInput = document.getElementById('subCompanyNameInput').value;
+    const parentCompanyNameInput = document.getElementById('parentCompanyNameInput').value;
+    
+    // Update sub company name in title area (reduce font weight handled in CSS)
+    const subCompanyTitleElement = document.querySelector('#subcompanyname');
+    if (subCompanyTitleElement) {
+        subCompanyTitleElement.textContent = subCompanyNameInput || 'ZIZI AESTHETICS';
+    }
+    
+    // Update parent company name in title area
+    const parentCompanyTitleElement = document.querySelector('#parentcompanyname');
+    if (parentCompanyTitleElement) {
+        parentCompanyTitleElement.textContent = parentCompanyNameInput || 'ZIZICUOGIA GLOBAL';
+    }
+    
+    // Update sub company name in footer area (preserve styling)
+    const subCompanyFooterElements = document.querySelectorAll('#subcompanyname strong');
+    subCompanyFooterElements.forEach(element => {
+        element.textContent = subCompanyNameInput || 'ZIZI AESTHETICS';
+    });
+    
+    // Update parent company name in footer area (preserve styling)
+    const parentCompanyFooterElements = document.querySelectorAll('#parentcompanyname strong');
+    parentCompanyFooterElements.forEach(element => {
+        element.textContent = parentCompanyNameInput || 'ZIZICUOGIA GLOBAL';
     });
 }
 
@@ -97,13 +131,17 @@ function generateItemsTable() {
         const qtyClass = isEven ? 's39' : 's42';
         const priceClass = isEven ? 's40' : 's43';
         
+        // Add bottom border to last row
+        const isLastRow = index === items.length - 1;
+        const bottomBorderClass = isLastRow ? ' bottom-border' : '';
+        
         row.innerHTML = `
-            <td class="s37"></td>
-            <td class="${descClass}" colspan="3">${description}</td>
-            <td class="${qtyClass}">${quantity}</td>
-            <td class="${priceClass}">$${price.toFixed(2)}</td>
-            <td class="${priceClass}">$${total.toFixed(2)}</td>
-            <td class="s32"></td>
+            <td class="s37${bottomBorderClass}"></td>
+            <td class="${descClass}${bottomBorderClass}" colspan="3">${description}</td>
+            <td class="${qtyClass}${bottomBorderClass}">${quantity}</td>
+            <td class="${priceClass}${bottomBorderClass}">₦${price.toFixed(2)}</td>
+            <td class="${priceClass}${bottomBorderClass}">₦${total.toFixed(2)}</td>
+            <td class="s32${bottomBorderClass}"></td>
         `;
         
         tableBody.appendChild(row);
@@ -129,13 +167,13 @@ function calculateTotals() {
     const balanceDue = subtotalLessDiscount + totalTax + shipping;
     
     // Update display
-    document.getElementById('displaySubtotal').textContent = `$${subtotal.toFixed(2)}`;
-    document.getElementById('displayDiscount').textContent = `$${discount.toFixed(2)}`;
-    document.getElementById('displaySubtotalLessDiscount').textContent = `$${subtotalLessDiscount.toFixed(2)}`;
+    document.getElementById('displaySubtotal').textContent = `₦${subtotal.toFixed(2)}`;
+    document.getElementById('displayDiscount').textContent = `₦${discount.toFixed(2)}`;
+    document.getElementById('displaySubtotalLessDiscount').textContent = `₦${subtotalLessDiscount.toFixed(2)}`;
     document.getElementById('displayTaxRate').textContent = `${taxRate}%`;
-    document.getElementById('displayTotalTax').textContent = `$${totalTax.toFixed(2)}`;
-    document.getElementById('displayShipping').textContent = `$${shipping.toFixed(2)}`;
-    document.getElementById('displayTotal').textContent = `$${balanceDue.toFixed(2)}`;
+    document.getElementById('displayTotalTax').textContent = `₦${totalTax.toFixed(2)}`;
+    document.getElementById('displayShipping').textContent = `₦${shipping.toFixed(2)}`;
+    document.getElementById('displayTotal').textContent = `₦${balanceDue.toFixed(2)}`;
 }
 
 function formatDate(dateString) {
@@ -145,19 +183,29 @@ function formatDate(dateString) {
 
 function downloadPDF() {
     const element = document.getElementById('invoicePreview');
+    
+    // Add PDF export class for better styling
+    element.classList.add('pdf-export');
+    
     const opt = {
-        margin: 0.5,
+        margin: [0.3, 0.3, 0.3, 0.3],
         filename: `invoice-${document.getElementById('invoiceNumber').value}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { 
-            scale: 2,
+            scale: 3,
             useCORS: true,
-            logging: false
+            logging: false,
+            width: 816, // 8.5in * 96dpi
+            height: 1056, // 11in * 96dpi
+            scrollX: 0,
+            scrollY: 0
         },
         jsPDF: { 
             unit: 'in', 
-            format: 'letter', 
-            orientation: 'portrait' 
+            format: 'a4', 
+            orientation: 'portrait',
+            putOnlyUsedFonts: true,
+            floatPrecision: 16
         }
     };
     
@@ -167,8 +215,13 @@ function downloadPDF() {
     formSection.style.display = 'none';
     
     html2pdf().set(opt).from(element).save().then(() => {
-        // Restore form
+        // Restore form and remove PDF class
         formSection.style.display = originalDisplay;
+        element.classList.remove('pdf-export');
+    }).catch((error) => {
+        console.error('PDF generation failed:', error);
+        formSection.style.display = originalDisplay;
+        element.classList.remove('pdf-export');
     });
 }
 
