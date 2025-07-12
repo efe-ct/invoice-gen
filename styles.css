@@ -5,6 +5,18 @@
 /* Bottom border for last row */
 .bottom-border {
     border-bottom: 1px solid #000000 !important;
+    border-collapse: collapse !important;
+}
+
+/* Phone link styling */
+.phone-link {
+    text-decoration: none !important;
+    color: inherit !important;
+    font-weight: 500 !important;
+}
+
+.phone-link:hover {
+    text-decoration: none !important;
 }
 
 /* Grid container styling */
@@ -297,43 +309,33 @@
     }
 }
 
-/* Print styles */
+/* Print and PDF styles */
 @media print {
     .form-section {
-        display: none;
+        display: none !important;
     }
     
     .container {
-        padding: 0;
-        background: white;
+        padding: 0 !important;
+        background: white !important;
+        display: block !important;
     }
     
     .invoice-section {
-        box-shadow: none;
-        margin: 0;
-        padding: 0;
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 20px !important;
+        width: 100% !important;
+        max-width: none !important;
     }
     
-    .waffle.no-grid {
-        font-size: 12px !important;
-    }
-    
-    .waffle.no-grid td {
-        font-size: inherit !important;
-        line-height: 1.2 !important;
+    /* Ensure proper page formatting */
+    @page {
+        size: letter;
+        margin: 0.5in;
     }
 }
-
-/* PDF specific styling */
-.pdf-export {
-    width: 8.5in;
-    min-height: 11in;
-    margin: 0 auto;
-    background: white;
-    font-size: 12px;
-}
-
-.pdf-export .waffle.no-grid {
-    width: 100%;
-    table-layout: fixed;
+.pdf-export .s72, .pdf-export .s73 {
+    font-size: 8pt !important;
+    line-height: 1.1 !important;
 }

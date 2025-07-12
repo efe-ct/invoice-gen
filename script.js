@@ -49,6 +49,11 @@ function updateCompanyNames() {
     const subCompanyNameInput = document.getElementById('subCompanyNameInput').value;
     const parentCompanyNameInput = document.getElementById('parentCompanyNameInput').value;
     
+    // Helper function to convert to title case (capitalize each word)
+    function toTitleCase(str) {
+        return str.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+    }
+    
     // Update sub company name in title area (reduce font weight handled in CSS)
     const subCompanyTitleElement = document.querySelector('#subcompanyname');
     if (subCompanyTitleElement) {
@@ -61,16 +66,18 @@ function updateCompanyNames() {
         parentCompanyTitleElement.textContent = parentCompanyNameInput || 'ZIZICUOGIA GLOBAL';
     }
     
-    // Update sub company name in footer area (preserve styling)
+    // Update sub company name in footer area (preserve styling, force title case)
     const subCompanyFooterElements = document.querySelectorAll('#subcompanyname strong');
     subCompanyFooterElements.forEach(element => {
-        element.textContent = subCompanyNameInput || 'ZIZI AESTHETICS';
+        const name = subCompanyNameInput || 'ZIZI AESTHETICS';
+        element.textContent = toTitleCase(name);
     });
     
-    // Update parent company name in footer area (preserve styling)
+    // Update parent company name in footer area (preserve styling, force title case)
     const parentCompanyFooterElements = document.querySelectorAll('#parentcompanyname strong');
     parentCompanyFooterElements.forEach(element => {
-        element.textContent = parentCompanyNameInput || 'ZIZICUOGIA GLOBAL';
+        const name = parentCompanyNameInput || 'ZIZICUOGIA GLOBAL';
+        element.textContent = toTitleCase(name);
     });
 }
 
@@ -79,6 +86,23 @@ function removeItem(button) {
         button.parentElement.remove();
         calculateTotals();
     }
+}
+
+function formatPhoneNumber(phone) {
+    // Remove all non-digit characters
+    const cleaned = phone.replace(/\D/g, '');
+    
+    // Format as +234 704 387 7574 pattern
+    if (cleaned.length === 13 && cleaned.startsWith('234')) {
+        return `+${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6, 9)} ${cleaned.slice(9)}`;
+    } else if (cleaned.length === 11 && cleaned.startsWith('0')) {
+        // Convert 0 prefix to +234
+        return `+234 ${cleaned.slice(1, 4)} ${cleaned.slice(4, 7)} ${cleaned.slice(7)}`;
+    } else if (cleaned.length === 10) {
+        // Assume it's missing the country code
+        return `+234 ${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6)}`;
+    }
+    return phone; // Return original if no pattern matches
 }
 
 function generateInvoice() {
@@ -95,7 +119,27 @@ function generateInvoice() {
     document.getElementById('displayDate').textContent = formatDate(invoiceDate);
     document.getElementById('displayClientName').textContent = clientName || '<SHIPPING TO NAME>';
     document.getElementById('displayClientAddress').textContent = clientAddress || '<SHIPPING TO ADDRESS>';
-    document.getElementById('displayClientPhone').textContent = clientPhone || '<SHIPPING TO PHONE NUMBER>';
+    
+    // Format and display client phone as a clickable link with emoji
+    const clientPhoneElement = document.getElementById('displayClientPhone');
+    if (clientPhone.trim()) {
+        const formattedPhone = formatPhoneNumber(clientPhone);
+        const cleanPhone = clientPhone.replace(/\D/g, '');
+        let telLink = cleanPhone;
+        
+        // Ensure proper tel link format
+        if (cleanPhone.length === 11 && cleanPhone.startsWith('0')) {
+            telLink = '234' + cleanPhone.slice(1);
+        } else if (cleanPhone.length === 10) {
+            telLink = '234' + cleanPhone;
+        } else if (cleanPhone.length === 13 && cleanPhone.startsWith('234')) {
+            telLink = cleanPhone;
+        }
+        
+        clientPhoneElement.innerHTML = `<a href="tel:+${telLink}" class="phone-link">📞 ${formattedPhone}</a>`;
+    } else {
+        clientPhoneElement.textContent = '<SHIPPING TO PHONE NUMBER>';
+    }
     
     // Update notes with default bank details if empty
     const defaultNotes = `Account details:<br>0094714592<br>Sterling Bank<br><span style="font-weight:bold;">ZIZICUOGIA GLOBAL SERVICES</span>`;
@@ -184,44 +228,36 @@ function formatDate(dateString) {
 function downloadPDF() {
     const element = document.getElementById('invoicePreview');
     
-    // Add PDF export class for better styling
-    element.classList.add('pdf-export');
-    
-    const opt = {
-        margin: [0.3, 0.3, 0.3, 0.3],
-        filename: `invoice-${document.getElementById('invoiceNumber').value}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-            scale: 3,
-            useCORS: true,
-            logging: false,
-            width: 816, // 8.5in * 96dpi
-            height: 1056, // 11in * 96dpi
-            scrollX: 0,
-            scrollY: 0
-        },
-        jsPDF: { 
-            unit: 'in', 
-            format: 'a4', 
-            orientation: 'portrait',
-            putOnlyUsedFonts: true,
-            floatPrecision: 16
-        }
-    };
-    
     // Hide form temporarily
     const formSection = document.querySelector('.form-section');
     const originalDisplay = formSection.style.display;
     formSection.style.display = 'none';
     
+    // Simple, effective PDF settings optimized for letter paper
+    const opt = {
+        margin: 0.4,
+        filename: `invoice-${document.getElementById('invoiceNumber').value}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+            scale: 2,
+            useCORS: true,
+            allowTaint: false,
+            backgroundColor: '#ffffff',
+            logging: false
+        },
+        jsPDF: { 
+            unit: 'in', 
+            format: 'letter', 
+            orientation: 'portrait' 
+        }
+    };
+    
     html2pdf().set(opt).from(element).save().then(() => {
-        // Restore form and remove PDF class
+        // Restore form
         formSection.style.display = originalDisplay;
-        element.classList.remove('pdf-export');
     }).catch((error) => {
         console.error('PDF generation failed:', error);
         formSection.style.display = originalDisplay;
-        element.classList.remove('pdf-export');
     });
 }
 
