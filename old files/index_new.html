@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZIZI CUOGIA GLOBAL - Invoice Generator</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Form Section -->
+        <div class="form-section">
+            <h1>Invoice Generator</h1>
+            
+            <form id="invoiceForm">
+                <div class="form-group">
+                    <label for="invoiceNumber">Invoice Number:</label>
+                    <input type="text" id="invoiceNumber" value="INV-001" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="invoiceDate">Date:</label>
+                    <input type="date" id="invoiceDate" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="clientName">Client Name:</label>
+                    <input type="text" id="clientName" placeholder="Client Company Name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="clientAddress">Client Address:</label>
+                    <textarea id="clientAddress" placeholder="Client Address" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="clientPhone">Client Phone:</label>
+                    <input type="text" id="clientPhone" placeholder="Client Phone Number" required>
+                </div>
+                
+                <div class="items-section">
+                    <h3>Invoice Items</h3>
+                    <div id="itemsList"></div>
+                    <button type="button" id="addItem">Add Item</button>
+                </div>
+                
+                <div class="form-group">
+                    <label for="taxRate">Tax Rate (%):</label>
+                    <input type="number" id="taxRate" value="0" min="0" max="100" step="0.01">
+                </div>
+                
+                <div class="form-group">
+                    <label for="discount">Discount:</label>
+                    <input type="number" id="discount" value="0" min="0" step="0.01">
+                </div>
+                
+                <div class="form-group">
+                    <label for="shipping">Shipping/Handling:</label>
+                    <input type="number" id="shipping" value="0" min="0" step="0.01">
+                </div>
+                
+                <div class="form-group">
+                    <label for="notes">Notes/Instructions:</label>
+                    <textarea id="notes" placeholder="Payment instructions, remarks, etc."></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" id="generateInvoice">Generate Invoice</button>
+                    <button type="button" id="downloadPDF">Download PDF</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Invoice Preview Section -->
+        <div class="invoice-section" id="invoicePreview">
+            <!-- Original Template Structure with Google Sheets styling -->
+            <div class="ritz grid-container" dir="ltr">
+                <table class="waffle no-grid invoice-table" cellspacing="0" cellpadding="0">
+                    <!-- Header Section -->
+                    <tr style="height: 18px">
+                        <td class="s0"></td>
+                        <td class="s1"></td>
+                        <td class="s1"></td>
+                        <td class="s2"></td>
+                        <td class="s2"></td>
+                        <td class="s2"></td>
+                        <td class="s3"></td>
+                        <td class="s3"></td>
+                    </tr>
+                    <tr style="height: 33px">
+                        <td class="s4"></td>
+                        <td class="s5"></td>
+                        <td class="s6"></td>
+                        <td class="s7"></td>
+                        <td class="s7"></td>
+                        <td class="s7"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                    </tr>
+                    <!-- Company Info Section -->
+                    <tr style="height: 20px">
+                        <td class="s9"></td>
+                        <td class="s10" colspan="4">&lt;PARENT COMPANY NAME&gt;</td>
+                        <td class="s9"></td>
+                        <td class="s11" rowspan="3">INVOICE</td>
+                        <td class="s12"></td>
+                    </tr>
+                    <tr style="height: 23px">
+                        <td class="s9"></td>
+                        <td class="s13" colspan="4">ZIZICUOGIA GLOBAL SERVICES</td>
+                        <td class="s9"></td>
+                        <td class="s12"></td>
+                    </tr>
+                    <tr style="height: 23px">
+                        <td class="s9"></td>
+                        <td class="s14" colspan="4">&lt;COMPANY ADDRESS&gt;</td>
+                        <td class="s9"></td>
+                        <td class="s12"></td>
+                    </tr>
+                    <tr style="height: 23px">
+                        <td class="s9"></td>
+                        <td class="s15" colspan="2">&lt;COMPANY PHONE NUMBER&gt;</td>
+                        <td class="s4"></td>
+                        <td class="s16"></td>
+                        <td class="s4"></td>
+                        <td class="s17" id="displayDate">&lt;DATE&gt;</td>
+                        <td class="s18"></td>
+                    </tr>
+                    <tr style="height: 23px">
+                        <td class="s9"></td>
+                        <td class="s19"></td>
+                        <td class="s19"></td>
+                        <td class="s4"></td>
+                        <td class="s20"></td>
+                        <td class="s4"></td>
+                        <td class="s20"></td>
+                        <td class="s20"></td>
+                    </tr>
+                    <tr style="height: 23px">
+                        <td class="s9"></td>
+                        <td class="s19"></td>
+                        <td class="s19"></td>
+                        <td class="s4"></td>
+                        <td class="s16"></td>
+                        <td class="s4"></td>
+                        <td class="s17" id="displayInvoiceNumber">&lt;INVOICE NUMBER&gt;</td>
+                        <td class="s18"></td>
+                    </tr>
+                    <!-- Spacing rows -->
+                    <tr style="height: 23px">
+                        <td class="s9"></td>
+                        <td class="s19"></td>
+                        <td class="s19"></td>
+                        <td class="s4"></td>
+                        <td class="s20"></td>
+                        <td class="s4"></td>
+                        <td class="s20"></td>
+                        <td class="s20"></td>
+                    </tr>
+                    <tr style="height: 23px">
+                        <td class="s21"></td>
+                        <td class="s22"></td>
+                        <td class="s22"></td>
+                        <td class="s23"></td>
+                        <td class="s23"></td>
+                        <td class="s24" colspan="2"></td>
+                        <td class="s24"></td>
+                    </tr>
+                    <tr style="height: 23px">
+                        <td class="s21"></td>
+                        <td class="s25"></td>
+                        <td class="s25"></td>
+                        <td class="s23"></td>
+                        <td class="s26" colspan="3"></td>
+                        <td class="s26"></td>
+                    </tr>
+                    <!-- Billing section -->
+                    <tr style="height: 20px">
+                        <td class="s21"></td>
+                        <td class="s27" colspan="2">BILLING AND SHIPPING TO</td>
+                        <td class="s27"></td>
+                        <td class="s27"></td>
+                        <td class="s28"></td>
+                        <td class="s28"></td>
+                        <td class="s29"></td>
+                    </tr>
+                    <tr style="height: 5px">
+                        <td class="s21"></td>
+                        <td class="s23"></td>
+                        <td class="s23"></td>
+                        <td class="s23"></td>
+                        <td class="s23"></td>
+                        <td class="s23"></td>
+                        <td class="s23"></td>
+                        <td class="s23"></td>
+                    </tr>
+                    <!-- Client info -->
+                    <tr style="height: 23px">
+                        <td class="s21"></td>
+                        <td class="s30" colspan="2" id="displayClientName">&lt;SHIPPING TO NAME&gt;</td>
+                        <td class="s30"></td>
+                        <td class="s30" colspan="2"></td>
+                        <td class="s30"></td>
+                        <td class="s30"></td>
+                    </tr>
+                    <tr style="height: 23px">
+                        <td class="s21"></td>
+                        <td class="s30" colspan="2" id="displayClientAddress">&lt;SHIPPING TO ADDRESS&gt;</td>
+                        <td class="s30"></td>
+                        <td class="s30"></td>
+                        <td class="s30"></td>
+                        <td class="s30"></td>
+                        <td class="s30"></td>
+                    </tr>
+                    <tr style="height: 23px">
+                        <td class="s21"></td>
+                        <td class="s30" colspan="2" id="displayClientPhone">&lt;SHIPPING TO PHONE NUMBER&gt;</td>
+                        <td class="s30"></td>
+                        <td class="s30"></td>
+                        <td class="s30"></td>
+                        <td class="s30"></td>
+                        <td class="s30"></td>
+                    </tr>
+                    <!-- Spacing rows -->
+                    <tr style="height: 23px">
+                        <td class="s21"></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td class="s30"></td>
+                    </tr>
+                    <tr style="height: 23px">
+                        <td class="s21"></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td class="s31"></td>
+                    </tr>
+                    <tr style="height: 23px">
+                        <td class="s21"></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td class="s32"></td>
+                    </tr>
+                    <tr style="height: 23px">
+                        <td class="s21"></td>
+                        <td class="s33"></td>
+                        <td class="s33"></td>
+                        <td class="s34"></td>
+                        <td class="s34"></td>
+                        <td class="s34"></td>
+                        <td class="s34"></td>
+                        <td class="s32"></td>
+                    </tr>
+                    <!-- Table header -->
+                    <tr style="height: 23px">
+                        <td class="s35"></td>
+                        <td class="s36" colspan="3">DESCRIPTION</td>
+                        <td class="s36">QTY</td>
+                        <td class="s36">UNIT PRICE</td>
+                        <td class="s36">TOTAL</td>
+                        <td class="s32"></td>
+                    </tr>
+                    <!-- Items will be inserted here dynamically -->
+                    <tbody id="invoiceItemsTable">
+                        <!-- Items will be populated here -->
+                    </tbody>
+                    <!-- Summary section -->
+                    <tr style="height: 24px">
+                        <td class="s21"></td>
+                        <td class="s51"></td>
+                        <td class="s52">Remarks / Payment Instructions:</td>
+                        <td class="s52"></td>
+                        <td class="s53"></td>
+                        <td class="s54">SUBTOTAL</td>
+                        <td class="s55" id="displaySubtotal">&lt;SUBTOTAL&gt;</td>
+                        <td class="s44"></td>
+                    </tr>
+                    <tr style="height: 24px">
+                        <td class="s21"></td>
+                        <td class="s56"></td>
+                        <td class="s57" dir="ltr" rowspan="4" id="displayNotes">
+                            Account details:<br>
+                            0094714592<br>
+                            Sterling Bank<br>
+                            <span style="font-weight:bold;">ZIZICUOGIA GLOBAL SERVICES</span>
+                        </td>
+                        <td class="s58"></td>
+                        <td class="s53"></td>
+                        <td class="s54">DISCOUNT</td>
+                        <td class="s55" id="displayDiscount">&lt;DISCOUNT&gt;</td>
+                        <td class="s44"></td>
+                    </tr>
+                    <tr style="height: 24px">
+                        <td class="s21"></td>
+                        <td class="s56"></td>
+                        <td class="s58"></td>
+                        <td class="s59"></td>
+                        <td class="s60 softmerge">
+                            <div class="softmerge-inner" style="width:156px;left:-18px">SUBTOTAL LESS DISCOUNT</div>
+                        </td>
+                        <td class="s61" id="displaySubtotalLessDiscount">&lt;SUBTOTAL - DISCOUNT&gt;</td>
+                        <td class="s44"></td>
+                    </tr>
+                    <tr style="height: 24px">
+                        <td class="s21"></td>
+                        <td class="s56"></td>
+                        <td class="s58"></td>
+                        <td class="s53"></td>
+                        <td class="s54">TAX RATE / VAT</td>
+                        <td class="s55" id="displayTaxRate">&lt;TAXRATE/VATE(%)&gt;</td>
+                        <td class="s62"></td>
+                    </tr>
+                    <tr style="height: 24px">
+                        <td class="s21"></td>
+                        <td class="s56"></td>
+                        <td class="s58"></td>
+                        <td class="s53"></td>
+                        <td class="s54">TOTAL TAX</td>
+                        <td class="s63" id="displayTotalTax">&lt;TOTAL TAX&gt;</td>
+                        <td class="s62"></td>
+                    </tr>
+                    <tr style="height: 24px">
+                        <td class="s21"></td>
+                        <td class="s56"></td>
+                        <td class="s58"></td>
+                        <td class="s58"></td>
+                        <td class="s53"></td>
+                        <td class="s64">SHIPPING/HANDLING</td>
+                        <td class="s65" id="displayShipping">&lt;SHIPPING PRICE&gt;</td>
+                        <td class="s62"></td>
+                    </tr>
+                    <tr style="height: 43px">
+                        <td class="s21"></td>
+                        <td class="s66"></td>
+                        <td class="s67"></td>
+                        <td></td>
+                        <td class="s53"></td>
+                        <td class="s68">Balance Due</td>
+                        <td class="s69" id="displayTotal">&lt;TOTAL&gt;</td>
+                        <td class="s70"></td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s21"></td>
+                        <td class="s66">Note</td>
+                        <td class="s67"></td>
+                        <td></td>
+                        <td class="s53"></td>
+                        <td class="s71"></td>
+                        <td class="s71"></td>
+                        <td class="s70"></td>
+                    </tr>
+                    <tr style="height: 31px">
+                        <td class="s21"></td>
+                        <td class="s72" dir="ltr" colspan="6">
+                            ZIZICUOGIA GLOBAL SERVICES is a registered subsidiary of &lt;PARENT COMPANY NAME&gt;. 
+                            All invoicing, operational, and contact information remains valid and in full effect under this corporate structure.
+                        </td>
+                        <td class="s73"></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

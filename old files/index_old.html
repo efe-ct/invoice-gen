@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Invoice Generator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="nav-bar">
+            <div class="nav-content">
+                <h1 class="nav-title">Invoice Generator</h1>
+                <div class="nav-actions">
+                    <button id="editBtn" class="btn btn-secondary">Edit Invoice</button>
+                    <button id="printBtn" class="btn btn-primary">Print</button>
+                    <button id="downloadBtn" class="btn btn-primary">Download PDF</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Edit Form (Hidden by default) -->
+        <div id="editForm" class="edit-form hidden">
+            <div class="form-container">
+                <h2>Edit Invoice Details</h2>
+                
+                <div class="form-grid">
+                    <!-- Company Information -->
+                    <section class="form-section">
+                        <h3>Company Information</h3>
+                        <div class="form-group">
+                            <label for="parentCompany">Parent Company Name</label>
+                            <input type="text" id="parentCompany" value="ACME CORPORATION">
+                        </div>
+                        <div class="form-group">
+                            <label for="subsidiaryCompany">Subsidiary Company Name</label>
+                            <input type="text" id="subsidiaryCompany" value="ACME SERVICES LLC">
+                        </div>
+                        <div class="form-group">
+                            <label for="companyAddress">Company Address</label>
+                            <textarea id="companyAddress" rows="3">123 Business Street
+Suite 100
+New York, NY 10001</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="companyPhone">Phone Number</label>
+                            <input type="tel" id="companyPhone" value="+1 (555) 123-4567">
+                        </div>
+                    </section>
+
+                    <!-- Invoice Details -->
+                    <section class="form-section">
+                        <h3>Invoice Details</h3>
+                        <div class="form-group">
+                            <label for="invoiceDate">Date</label>
+                            <input type="date" id="invoiceDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="invoiceNumber">Invoice Number</label>
+                            <input type="text" id="invoiceNumber" value="INV-2025-001">
+                        </div>
+                    </section>
+
+                    <!-- Client Information -->
+                    <section class="form-section">
+                        <h3>Billing & Shipping Information</h3>
+                        <div class="form-group">
+                            <label for="clientName">Client Name</label>
+                            <input type="text" id="clientName" value="CLIENT COMPANY NAME">
+                        </div>
+                        <div class="form-group">
+                            <label for="clientAddress">Client Address</label>
+                            <textarea id="clientAddress" rows="3">456 Client Avenue
+Building 2
+Los Angeles, CA 90210</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="clientPhone">Client Phone</label>
+                            <input type="tel" id="clientPhone" value="+1 (555) 987-6543">
+                        </div>
+                    </section>
+
+                    <!-- Invoice Items -->
+                    <section class="form-section full-width">
+                        <h3>Invoice Items</h3>
+                        <div id="itemsContainer">
+                            <!-- Items will be dynamically added here -->
+                        </div>
+                        <button type="button" id="addItemBtn" class="btn btn-secondary">Add Item</button>
+                    </section>
+
+                    <!-- Calculations -->
+                    <section class="form-section">
+                        <h3>Additional Charges</h3>
+                        <div class="form-group">
+                            <label for="discountRate">Discount (%)</label>
+                            <input type="number" id="discountRate" value="0" min="0" max="100" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label for="taxRate">Tax Rate (%)</label>
+                            <input type="number" id="taxRate" value="8.25" min="0" max="100" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label for="shippingCost">Shipping/Handling</label>
+                            <input type="number" id="shippingCost" value="0" min="0" step="0.01">
+                        </div>
+                    </section>
+
+                    <!-- Payment Instructions -->
+                    <section class="form-section">
+                        <h3>Payment Instructions</h3>
+                        <div class="form-group">
+                            <label for="paymentInstructions">Payment Instructions</label>
+                            <textarea id="paymentInstructions" rows="4">Account details:
+Account Number: 0094714592
+Bank: Sterling Bank
+Account Name: ACME GLOBAL SERVICES</textarea>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" id="cancelBtn" class="btn btn-secondary">Cancel</button>
+                    <button type="button" id="saveBtn" class="btn btn-primary">Save & Preview</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Invoice Preview -->
+        <div id="invoicePreview" class="invoice-container">
+            <article class="invoice">
+                <!-- Header with company branding -->
+                <header class="invoice-header">
+                    <div class="company-info">
+                        <div class="company-main">
+                            <h1 id="display-parentCompany" class="company-name">ACME CORPORATION</h1>
+                            <h2 id="display-subsidiaryCompany" class="subsidiary-name">ACME SERVICES LLC</h2>
+                            <div id="display-companyAddress" class="company-address">
+                                123 Business Street<br>
+                                Suite 100<br>
+                                New York, NY 10001
+                            </div>
+                            <div id="display-companyPhone" class="company-phone">+1 (555) 123-4567</div>
+                        </div>
+                    </div>
+                    <div class="invoice-title-section">
+                        <h1 class="invoice-title">INVOICE</h1>
+                        <div class="invoice-meta">
+                            <div class="meta-item">
+                                <span class="meta-label">Date:</span>
+                                <span id="display-invoiceDate" class="meta-value"></span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Invoice #:</span>
+                                <span id="display-invoiceNumber" class="meta-value">INV-2025-001</span>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Billing Information -->
+                <section class="billing-section">
+                    <h3 class="section-title">BILLING AND SHIPPING TO</h3>
+                    <div class="client-info">
+                        <div id="display-clientName" class="client-name">CLIENT COMPANY NAME</div>
+                        <div id="display-clientAddress" class="client-address">
+                            456 Client Avenue<br>
+                            Building 2<br>
+                            Los Angeles, CA 90210
+                        </div>
+                        <div id="display-clientPhone" class="client-phone">+1 (555) 987-6543</div>
+                    </div>
+                </section>
+
+                <!-- Items Table -->
+                <section class="items-section">
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th class="desc-col">DESCRIPTION</th>
+                                <th class="qty-col">QTY</th>
+                                <th class="price-col">UNIT PRICE</th>
+                                <th class="total-col">TOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsTableBody">
+                            <!-- Items will be dynamically populated -->
+                        </tbody>
+                    </table>
+                </section>
+
+                <!-- Totals and Payment Info -->
+                <section class="totals-section">
+                    <div class="payment-instructions">
+                        <h4>Remarks / Payment Instructions:</h4>
+                        <div id="display-paymentInstructions" class="payment-text">
+                            Account details:<br>
+                            Account Number: 0094714592<br>
+                            Bank: Sterling Bank<br>
+                            Account Name: ACME GLOBAL SERVICES
+                        </div>
+                    </div>
+                    <div class="totals">
+                        <div class="total-line">
+                            <span class="total-label">SUBTOTAL</span>
+                            <span id="display-subtotal" class="total-value">$0.00</span>
+                        </div>
+                        <div class="total-line">
+                            <span class="total-label">DISCOUNT</span>
+                            <span id="display-discount" class="total-value">$0.00</span>
+                        </div>
+                        <div class="total-line">
+                            <span class="total-label">SUBTOTAL LESS DISCOUNT</span>
+                            <span id="display-subtotalLessDiscount" class="total-value">$0.00</span>
+                        </div>
+                        <div class="total-line">
+                            <span class="total-label">TAX RATE / VAT</span>
+                            <span id="display-taxRateDisplay" class="total-value">8.25%</span>
+                        </div>
+                        <div class="total-line">
+                            <span class="total-label">TOTAL TAX</span>
+                            <span id="display-totalTax" class="total-value">$0.00</span>
+                        </div>
+                        <div class="total-line">
+                            <span class="total-label">SHIPPING/HANDLING</span>
+                            <span id="display-shippingCost" class="total-value">$0.00</span>
+                        </div>
+                        <div class="total-line final-total">
+                            <span class="total-label">Balance Due</span>
+                            <span id="display-grandTotal" class="total-value">$0.00</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Footer -->
+                <footer class="invoice-footer">
+                    <div class="footer-note">
+                        <strong>Note</strong>
+                    </div>
+                    <div class="footer-text">
+                        <span id="display-subsidiaryCompany-footer">ACME SERVICES LLC</span> is a registered subsidiary of 
+                        <span id="display-parentCompany-footer">ACME CORPORATION</span>. 
+                        All invoicing, operational, and contact information remains valid and in full effect under this corporate structure.
+                    </div>
+                </footer>
+            </article>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
